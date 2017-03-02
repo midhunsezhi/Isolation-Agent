@@ -128,18 +128,25 @@ class CustomPlayer:
 
         self.time_left = time_left
 
-        # TODO: finish this function!
-
         # Perform any required initializations, including selecting an initial
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
+        if game.move_count == 0:
+            return (4, 4)
+        if len(game.get_legal_moves(game.active_player)) == 0:
+            return (-1, -1)
+
+       
 
         try:
             # The search method call (alpha beta or minimax) should happen in
             # here in order to avoid timeout. The try/except block will
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
-            pass
+            if self.method == 'minimax':
+                _, answer = self.minimax(game, 1, True)
+
+            return answer
 
         except Timeout:
             # Handle any actions required at timeout, if necessary
@@ -182,8 +189,23 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        best_move = (-1, -1)
+        if maximizing_player:
+            branch_score = float('-inf')
+            for move in game.get_legal_moves():
+                new_game = game.forecast_move(move)
+                if branch_score < self.score(new_game, new_game.active_player):
+                    branch_score = self.score(new_game, new_game.active_player)
+                    best_move = move
+        else:
+            branch_score = float('inf')
+            for move in game.get_legal_moves():
+                new_game = game.forecast_move(move)
+                if branch_score > self.score(new_game, new_game.active_player):
+                    branch_score = self.score(new_game, new_game.active_player)
+                    best_move = move
+
+        return branch_score, best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the
