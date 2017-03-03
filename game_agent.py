@@ -133,7 +133,7 @@ class CustomPlayer:
         # immediately if there are no legal moves
         if game.move_count == 0:
             return (4, 4)
-        if len(game.get_legal_moves(game.active_player)) == 0:
+        if len(game.get_legal_moves(self)) == 0:
             return (-1, -1)
 
         try:
@@ -142,7 +142,9 @@ class CustomPlayer:
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
             if self.method == 'minimax':
-                _, answer = self.minimax(game, self.search_depth, True)
+                _, answer = self.minimax(game, self.search_depth)
+            elif self.method == 'alphabeta':
+                _, answer = self.alphabeta(game, self.search_depth)
 
             return answer
 
@@ -187,52 +189,27 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
+        # Terminal Test
         if len(game.get_legal_moves()) == 0:
-            return self.score(game, game.active_player), (-1, -1)
+            return self.score(game, self), (-1, -1)
 
+        # fixed depth minimax
         if depth == 1:
-            best_move = (-1, -1)
             if maximizing_player:
-                branch_score = float('-inf')
-                for move in game.get_legal_moves():
-                    new_game = game.forecast_move(move)
-                    if branch_score < self.score(new_game, new_game.active_player):
-                        branch_score = self.score(new_game, new_game.active_player)
-                        best_move = move
+                return max([(self.score(game.forecast_move(m), self), m)
+                            for m in game.get_legal_moves()])
             else:
-                branch_score = float('inf')
-                for move in game.get_legal_moves():
-                    new_game = game.forecast_move(move)
-                    if branch_score > self.score(new_game, new_game.active_player):
-                        branch_score = self.score(new_game, new_game.active_player)
-                        best_move = move
-
-            return branch_score, best_move
+                return min([(self.score(game.forecast_move(m), self), m)
+                            for m in game.get_legal_moves()])
 
         if maximizing_player:
-            branch_score = float('-inf')
-            for move in game.get_legal_moves():
-                new_game = game.forecast_move(move)
-                utility, best_move = self.minimax(game.forecast_move(move),
-                                                  depth-1, not maximizing_player)
-                if branch_score < utility:
-                    branch_score = utility
-                    best_move = move
+            return max([self.minimax(game.forecast_move(m), depth - 1, not maximizing_player)
+                        for m in game.get_legal_moves()])
+
         else:
-            branch_score = float('inf')
-            for move in game.get_legal_moves():
-                new_game = game.forecast_move(move)
-                utility, best_move = self.minimax(game.forecast_move(move),
-                                                  depth-1, not maximizing_player)
-                if branch_score > utility:
-                    branch_score = utility
-                    best_move = move
+            return min([self.minimax(game.forecast_move(m), depth - 1, not maximizing_player)
+                        for m in game.get_legal_moves()])
 
-        return branch_score, best_move
-
-        # return max(self.minimax(game.forecast_move(move), depth-1, not maximizing_player)
-        #             for move in game.get_legal_moves(),
-        #            key=lambda p: p[0] if maximizing_player else -1 * p[0])
 
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
