@@ -136,21 +136,19 @@ class CustomPlayer:
         if len(game.get_legal_moves(game.active_player)) == 0:
             return (-1, -1)
 
-       
-
         try:
             # The search method call (alpha beta or minimax) should happen in
             # here in order to avoid timeout. The try/except block will
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
             if self.method == 'minimax':
-                _, answer = self.minimax(game, 1, True)
+                _, answer = self.minimax(game, self.search_depth, True)
 
             return answer
 
         except Timeout:
             # Handle any actions required at timeout, if necessary
-            pass
+            print('Timeout!!')
 
         # Return the best move from the last completed search iteration
         raise NotImplementedError
@@ -189,23 +187,53 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        best_move = (-1, -1)
+        if len(game.get_legal_moves()) == 0:
+            return self.score(game, game.active_player), (-1, -1)
+
+        if depth == 1:
+            best_move = (-1, -1)
+            if maximizing_player:
+                branch_score = float('-inf')
+                for move in game.get_legal_moves():
+                    new_game = game.forecast_move(move)
+                    if branch_score < self.score(new_game, new_game.active_player):
+                        branch_score = self.score(new_game, new_game.active_player)
+                        best_move = move
+            else:
+                branch_score = float('inf')
+                for move in game.get_legal_moves():
+                    new_game = game.forecast_move(move)
+                    if branch_score > self.score(new_game, new_game.active_player):
+                        branch_score = self.score(new_game, new_game.active_player)
+                        best_move = move
+
+            return branch_score, best_move
+
         if maximizing_player:
             branch_score = float('-inf')
             for move in game.get_legal_moves():
                 new_game = game.forecast_move(move)
-                if branch_score < self.score(new_game, new_game.active_player):
-                    branch_score = self.score(new_game, new_game.active_player)
+                utility, best_move = self.minimax(game.forecast_move(move),
+                                                  depth-1, not maximizing_player)
+                if branch_score < utility:
+                    branch_score = utility
                     best_move = move
         else:
             branch_score = float('inf')
             for move in game.get_legal_moves():
                 new_game = game.forecast_move(move)
-                if branch_score > self.score(new_game, new_game.active_player):
-                    branch_score = self.score(new_game, new_game.active_player)
+                utility, best_move = self.minimax(game.forecast_move(move),
+                                                  depth-1, not maximizing_player)
+                if branch_score > utility:
+                    branch_score = utility
                     best_move = move
 
         return branch_score, best_move
+
+        # return max(self.minimax(game.forecast_move(move), depth-1, not maximizing_player)
+        #             for move in game.get_legal_moves(),
+        #            key=lambda p: p[0] if maximizing_player else -1 * p[0])
+
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the
