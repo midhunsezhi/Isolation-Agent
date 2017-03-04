@@ -191,16 +191,15 @@ class CustomPlayer:
 
         # Terminal Test
         if len(game.get_legal_moves()) == 0:
-            return self.score(game, self), (-1, -1)
+            if game.is_loser(self):
+                return float("-inf"), (-1, -1)
 
-        # fixed depth minimax
-        if depth == 1:
-            if maximizing_player:
-                return max([(self.score(game.forecast_move(m), self), m)
-                            for m in game.get_legal_moves()])
-            else:
-                return min([(self.score(game.forecast_move(m), self), m)
-                            for m in game.get_legal_moves()])
+            if game.is_winner(self):
+                return float("inf"), (-1, -1)
+
+        if depth == 0:
+            return self.score(game, self), game.get_player_location(game.inactive_player)
+
 
         if maximizing_player:
             return max([self.minimax(game.forecast_move(m), depth - 1, not maximizing_player)
