@@ -190,24 +190,26 @@ class CustomPlayer:
             raise Timeout()
 
         # Terminal Test
-        if len(game.get_legal_moves()) == 0:
-            if game.is_loser(self):
-                return float("-inf"), (-1, -1)
-
-            if game.is_winner(self):
-                return float("inf"), (-1, -1)
-
-        if depth == 0:
+        if depth == 0 or len(game.get_legal_moves()) == 0:
             return self.score(game, self), game.get_player_location(game.inactive_player)
 
-
+        best_move = (-1, -1)
         if maximizing_player:
-            return max([self.minimax(game.forecast_move(m), depth - 1, not maximizing_player)
-                        for m in game.get_legal_moves()])
-
+            minimax_val = float('-inf')
+            for move in game.get_legal_moves():
+                tempval, _ = self.minimax(game.forecast_move(move), depth-1, not maximizing_player)
+                if minimax_val < tempval:
+                    minimax_val = tempval
+                    best_move = move
         else:
-            return min([self.minimax(game.forecast_move(m), depth - 1, not maximizing_player)
-                        for m in game.get_legal_moves()])
+            minimax_val = float('inf')
+            for move in game.get_legal_moves():
+                tempval, _ = self.minimax(game.forecast_move(move), depth-1, not maximizing_player)
+                if minimax_val > tempval:
+                    minimax_val = tempval
+                    best_move = move
+
+        return minimax_val, best_move
 
 
 
