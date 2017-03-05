@@ -257,6 +257,9 @@ class CustomPlayer:
         return self.get_max_value(game, depth, alpha, beta)
 
     def get_max_value(self, game, depth, alpha, beta):
+        """
+        Get the max value at the next depth along with move to get there
+        """
         #terminal test
         if depth == 0 or len(game.get_legal_moves()) == 0:
             return self.score(game, self), game.get_player_location(game.inactive_player)
@@ -275,6 +278,9 @@ class CustomPlayer:
         return max_val, best_move
 
     def get_min_value(self, game, depth, alpha, beta):
+        """
+        Get the min value at the next depth along with move to get there
+        """
         #terminal test
         if depth == 0 or len(game.get_legal_moves()) == 0:
             return self.score(game, self), game.get_player_location(game.inactive_player)
