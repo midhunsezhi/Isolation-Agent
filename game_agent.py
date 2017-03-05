@@ -254,24 +254,40 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # Terminal Test
+        return self.get_max_value(game, depth, alpha, beta)
+
+    def get_max_value(self, game, depth, alpha, beta):
+        #terminal test
         if depth == 0 or len(game.get_legal_moves()) == 0:
             return self.score(game, self), game.get_player_location(game.inactive_player)
 
+        max_val = float('-inf')
         best_move = (-1, -1)
-        if maximizing_player:
-            minimax_val = float('-inf')
-            for move in game.get_legal_moves():
-                tempval, _ = self.alphabeta(game.forecast_move(move), depth-1, alpha, beta, not maximizing_player)
-                if minimax_val < tempval:
-                    minimax_val = tempval
-                    best_move = move
-        else:
-            minimax_val = float('inf')
-            for move in game.get_legal_moves():
-                tempval, _ = self.alphabeta(game.forecast_move(move), depth-1, alpha, beta, not maximizing_player)
-                if minimax_val > tempval:
-                    minimax_val = tempval
-                    best_move = move
+        for move in game.get_legal_moves():
+            current_val, _ = self.get_min_value(game.forecast_move(move), depth-1, alpha, beta)
+            if max_val < current_val:
+                max_val = current_val
+                best_move = move
 
-        return minimax_val, best_move
+            if max_val >= beta:
+                return max_val, best_move
+            alpha = max(alpha, max_val)
+        return max_val, best_move
+
+    def get_min_value(self, game, depth, alpha, beta):
+        #terminal test
+        if depth == 0 or len(game.get_legal_moves()) == 0:
+            return self.score(game, self), game.get_player_location(game.inactive_player)
+
+        min_val = float('inf')
+        best_move = (-1, -1)
+        for move in game.get_legal_moves():
+            current_val, _ = self.get_max_value(game.forecast_move(move), depth-1, alpha, beta)
+            if min_val > current_val:
+                min_val = current_val
+                best_move = move
+
+            if min_val <= alpha:
+                return min_val, best_move
+            beta = min(beta, min_val)
+        return min_val, best_move
