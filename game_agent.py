@@ -133,7 +133,12 @@ class CustomPlayer:
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
         if game.move_count == 0:
-            return (4, 4)
+            return (3, 3)
+        if game.move_count == 1:
+            if (3, 3) in game.get_legal_moves():
+                return (3,3)
+            else:
+                return (3,2)
         if len(game.get_legal_moves(self)) == 0:
             return (-1, -1)
 
@@ -158,7 +163,7 @@ class CustomPlayer:
 
         except Timeout:
             # Handle any actions required at timeout, if necessary
-            print('Timeout!!')
+            return answer
 
         # Return the best move from the last completed search iteration
         return answer
@@ -199,6 +204,12 @@ class CustomPlayer:
 
         # Terminal Test
         if depth == 0 or len(game.get_legal_moves()) == 0:
+            if game.is_loser(self):
+                return float("-inf"), game.get_player_location(game.inactive_player)
+
+            if game.is_winner(self):
+                return float("inf"), game.get_player_location(game.inactive_player)
+            
             return self.score(game, self), game.get_player_location(game.inactive_player)
 
         best_move = (-1, -1)
@@ -268,8 +279,16 @@ class CustomPlayer:
         """
         Get the max value at the next depth along with move to get there
         """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise Timeout()
         #terminal test
         if depth == 0 or len(game.get_legal_moves()) == 0:
+            if game.is_loser(self):
+                return float("-inf"), game.get_player_location(game.inactive_player)
+
+            if game.is_winner(self):
+                return float("inf"), game.get_player_location(game.inactive_player)
+
             return self.score(game, self), game.get_player_location(game.inactive_player)
 
         max_val = float('-inf')
@@ -289,8 +308,16 @@ class CustomPlayer:
         """
         Get the min value at the next depth along with move to get there
         """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise Timeout()
         #terminal test
         if depth == 0 or len(game.get_legal_moves()) == 0:
+            if game.is_loser(self):
+                return float("-inf"), game.get_player_location(game.inactive_player)
+
+            if game.is_winner(self):
+                return float("inf"), game.get_player_location(game.inactive_player)
+
             return self.score(game, self), game.get_player_location(game.inactive_player)
 
         min_val = float('inf')
