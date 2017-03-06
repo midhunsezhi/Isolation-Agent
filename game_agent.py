@@ -48,6 +48,38 @@ def custom_score(game, player):
 
     return player_moves - 2 * opp_moves
 
+def custom_score2(game, player):
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    player_moves = float(len(game.get_legal_moves(player)))
+    opp_moves = float(len(game.get_legal_moves(game.get_opponent(player))))
+
+    if opp_moves:
+        return player_moves/opp_moves
+
+    return float("inf")
+
+def custom_score3(game, player):
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    player_moves = float(len(game.get_legal_moves(player)))
+    opp_moves = float(len(game.get_legal_moves(game.get_opponent(player))))
+
+    if opp_moves:
+        return player_moves ** (1 / opp_moves)
+
+    return float("inf")
+
 
 
 
