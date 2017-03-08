@@ -32,7 +32,7 @@ from sample_players import open_move_score
 from sample_players import improved_score
 from game_agent import *
 
-NUM_MATCHES = 5  # number of matches against each opponent
+NUM_MATCHES = 100  # number of matches against each opponent
 TIME_LIMIT = 150  # number of milliseconds before timeout
 
 TIMEOUT_WARNING = "One or more agents lost a match this round due to " + \
