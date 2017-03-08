@@ -37,27 +37,33 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
+    opponent = game.get_opponent(player)
 
     player_moves = float(len(game.get_legal_moves(player)))
-    opp_moves = float(len(game.get_legal_moves(game.get_opponent(player))))
+    opp_moves = float(len(game.get_legal_moves(opponent)))
+
+    if not player_moves:
+        return float("-inf")
+
+    if not opp_moves:
+        return float("inf")
 
     return player_moves - 2 * opp_moves
 
 def custom_score2(game, player):
-
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
+    """
+    calculate the value of my_moves/opponent_moves
+    """
+    opponent = game.get_opponent(player)
 
     player_moves = float(len(game.get_legal_moves(player)))
-    opp_moves = float(len(game.get_legal_moves(game.get_opponent(player))))
+    opp_moves = float(len(game.get_legal_moves(opponent)))
+
+    if not player_moves:
+        return float("-inf")
+
+    if not opp_moves:
+        return float("inf")
 
     if opp_moves:
         return player_moves/opp_moves
@@ -65,21 +71,75 @@ def custom_score2(game, player):
     return float("inf")
 
 def custom_score3(game, player):
-
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
+    """
+    calculate the sum of open moves for all possible states in the next ply
+    """
+    opponent = game.get_opponent(player)
 
     player_moves = float(len(game.get_legal_moves(player)))
-    opp_moves = float(len(game.get_legal_moves(game.get_opponent(player))))
+    opp_moves = float(len(game.get_legal_moves(opponent)))
 
-    if opp_moves:
-        return player_moves ** (1 / opp_moves)
+    if not player_moves:
+        return float("-inf")
 
-    return float("inf")
+    if not opp_moves:
+        return float("inf")
 
+    player_total_moves = sum([float(len(game.forecast_move(move).get_legal_moves(player)))
+                              for move in game.get_legal_moves(player)], 0)
+
+    opponent_total_moves = sum([float(len(game.forecast_move(move).get_legal_moves(opponent)))
+                                for move in game.get_legal_moves(opponent)], 0)
+
+
+    return player_total_moves - opponent_total_moves
+
+def custom_score4(game, player):
+    """
+    calculate the average number of open moves for all possible states in the next ply
+    """
+
+    opponent = game.get_opponent(player)
+
+    player_moves = float(len(game.get_legal_moves(player)))
+    opp_moves = float(len(game.get_legal_moves(opponent)))
+
+    if not player_moves:
+        return float("-inf")
+
+    if not opp_moves:
+        return float("inf")
+
+    avg_moves = sum([float(len(game.forecast_move(move).get_legal_moves(player)))
+                     for move in game.get_legal_moves(player)], 0) / player_moves
+
+
+    avg_opponent_moves = sum([float(len(game.forecast_move(move).get_legal_moves(opponent)))
+                              for move in game.get_legal_moves(opponent)], 0) / opp_moves
+
+    return avg_moves - avg_opponent_moves
+
+def custom_score5(game, player):
+    """
+    calculate the max possible moves in next ply
+    """
+    opponent = game.get_opponent(player)
+
+    player_moves = float(len(game.get_legal_moves(player)))
+    opp_moves = float(len(game.get_legal_moves(opponent)))
+
+    if not player_moves:
+        return float("-inf")
+
+    if not opp_moves:
+        return float("inf")
+
+    player_max = max([float(len(game.forecast_move(move).get_legal_moves(player)))
+                      for move in game.get_legal_moves(player)])
+    opp_max = max([float(len(game.forecast_move(move).get_legal_moves(opponent)))
+                   for move in game.get_legal_moves(opponent)])
+
+    return player_max - opp_max
 
 
 
@@ -114,7 +174,7 @@ class CustomPlayer:
     """
 
     def __init__(self, search_depth=3, score_fn=custom_score,
-                 iterative=True, method='minimax', timeout=10.):
+                 iterative=True, method='minimax', timeout=15.):
         self.search_depth = search_depth
         self.iterative = iterative
         self.score = score_fn
@@ -168,9 +228,9 @@ class CustomPlayer:
             return (3, 3)
         if game.move_count == 1:
             if (3, 3) in game.get_legal_moves():
-                return (3,3)
+                return (3, 3)
             else:
-                return (3,2)
+                return (3, 2)
         if len(game.get_legal_moves(self)) == 0:
             return (-1, -1)
 
@@ -241,7 +301,7 @@ class CustomPlayer:
 
             if game.is_winner(self):
                 return float("inf"), game.get_player_location(game.inactive_player)
-            
+
             return self.score(game, self), game.get_player_location(game.inactive_player)
 
         best_move = (-1, -1)
